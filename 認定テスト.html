@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ガイド認定テスト</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.js"></script>
+    <style>
+        .hidden { display: none; }
+    </style>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto bg-white p-8 rounded shadow-md">
+        <h1 class="text-3xl font-bold mb-6">ガイド認定テスト</h1>
+        <div id="level-selection">
+            <p class="mb-4">レベルを選択してください：</p>
+            <div class="space-x-4">
+                <button onclick="showTest(1)" class="bg-blue-500 text-white px-4 py-2 rounded">レベル1</button>
+                <button onclick="showTest(2)" class="bg-blue-500 text-white px-4 py-2 rounded">レベル2</button>
+                <button onclick="showTest(3)" class="bg-blue-500 text-white px-4 py-2 rounded">レベル3</button>
+                <button onclick="showTest(4)" class="bg-blue-500 text-white px-4 py-2 rounded">レベル4</button>
+            </div>
+        </div>
+
+        <div id="test-container" class="hidden mt-8">
+            <h2 id="test-level" class="text-2xl font-semibold mb-4"></h2>
+            <form id="test-form">
+                <!-- Test questions will be dynamically inserted here -->
+            </form>
+            <button onclick="submitTest()" class="mt-6 bg-green-500 text-white px-6 py-2 rounded">テスト提出</button>
+        </div>
+
+        <div id="result" class="hidden mt-8">
+            <h2 class="text-2xl font-semibold mb-4">テスト結果</h2>
+            <p id="score"></p>
+            <p id="pass-fail"></p>
+        </div>
+    </div>
+
+    <script>
+         const tests = {
+            1: [
+                {
+                    question: "京都の世界遺産の数は？",
+                    type: "multiple",
+                    options: ["10", "17", "21", "25"],
+                    answer: 1,
+                    points: 10
+                },
+                {
+                    question: "英語で以下の文章を完成させなさい：The Golden Pavilion is a Zen temple whose top two floors are completely covered in _____ leaf.",
+                    type: "text",
+                    answer: "gold",
+                    points: 10
+                },
+                {
+                    question: "外国人観光客に京都の魅力を説明してください。歴史、文化、観光地などを含めて説明すること。",
+                    type: "essay",
+                    points: 15,
+                    rubric: [
+                        { criteria: "歴史的背景", maxPoints: 5 },
+                        { criteria: "文化的特徴", maxPoints: 5 },
+                        { criteria: "主要観光地の紹介", maxPoints: 5 }
+                    ],
+                    questionContext: {
+                         keywords: ["平安京", "古都", "伝統", "神社仏閣", "和食", "茶道", "金閣寺", "清水寺", "二条城", "文化遺産", "四季", "祭り"]
+                    }
+                },
+                {
+                    question: "以下の状況でどのように対応しますか：グループの1人が遅刻して集合場所に来ません。",
+                    type: "multiple",
+                    options: [
+                        "そのまま出発する",
+                        "全員で待つ",
+                        "グループを2つに分け、1つは出発し、もう1つは待つ",
+                        "遅刻者に連絡を取り、状況を確認する"
+                    ],
+                    answer: 3,
+                    points: 10
+                },
+                {
+                    question: "京都の代表的な日本庭園を2つ挙げ、その特徴を簡単に説明してください。",
+                    type: "essay",
+                    points: 15,
+                    rubric: [
+                        { criteria: "適切な庭園の選択", maxPoints: 5 },
+                        { criteria: "各庭園の特徴の説明", maxPoints: 10 }
+                    ],
+                    questionContext: {
+                         keywords: ["龍安寺", "枯山水", "金閣寺", "鏡湖池", "桂離宮", "借景", "苔寺", "竜田川", "石庭", "禅"]
+                    }
+                },
+                {
+                    question: "京都の伝統的な食文化について、外国人観光客に分かりやすく説明してください。",
+                    type: "essay",
+                    points: 15,
+                    rubric: [
+                        { criteria: "代表的な料理の紹介", maxPoints: 5 },
+                        { criteria: "食文化の特徴の説明", maxPoints: 5 },
+                        { criteria: "外国人向けの分かりやすさ", maxPoints: 5 }
+                    ],
+                    questionContext: {
+                         keywords: ["京料理", "精進料理", "懐石料理", "湯葉", "生麩", "京野菜", "抹茶", "和菓子", "出汁", "季節感"]
+                    }
+                }
+            ],
+            2: [
+                {
+                    question: "日本の和食文化が2013年にユネスコ無形文化遺産に登録されました。和食の特徴を3つ挙げなさい。",
+                    type: "essay",
+                    points: 15,
+                    rubric: [
+                        { criteria: "正確な特徴の提示", maxPoints: 9 },
+                        { criteria: "説明の明確さ", maxPoints: 6 }
+                    ],
+                    questionContext: {
+                        keywords: ["季節感", "栄養バランス", "うま味", "出汁", "多様性", "美的感覚", "地産地消", "発酵食品", "調理技法"]
+                    }
+                },
+                {
+                    question: "Explain the concept of 'omotenashi' in English.",
+                    type: "essay",
+                    points: 15,
+                    rubric: [
+                        { criteria: "概念の理解", maxPoints: 6 },
+                        { criteria: "英語での表現力", maxPoints: 5 },
+                        { criteria: "具体例の提示", maxPoints: 4 }
+                    ],
+                    questionContext: {
+                        keywords: ["hospitality", "selfless", "anticipate needs", "attention to detail", "respect", "guest-first mentality", "Japanese culture", "tea ceremony"]
+                     }
+                },
+                {
+                    question: "京都の伝統工芸品である「西陣織」の特徴は？",
+                    type: "multiple",
+                    options: [
+                        "絹織物である",
+                        "幾何学模様が特徴",
+                        "主に着物や帯に使用される",
+                        "以上全て"
+                    ],
+                    answer: 3,
+                    points: 10
+                },
+                {
+                    question: "外国人観光客が日本の温泉文化に興味を持っています。混浴や裸体での入浴に抵抗がある場合、どのように対応しますか？",
+                    type: "essay",
+                    points: 15,
+                    rubric: [
+                        { criteria: "文化的配慮", maxPoints: 5 },
+                        { criteria: "代替案の提示", maxPoints: 5 },
+                        { criteria: "コミュニケーションスキル", maxPoints: 5 }
+                    ],
+                    questionContext: {
+                        keywords: ["私湯", "貸切風呂", "浴衣", "温泉マナー", "効能", "入浴時間", "タオル使用", "水着OK温泉", "文化体験", "リラックス"]
+                    }
+                },
+                {
+                    question: "京都の歴史的建造物の保存と現代的な都市開発のバランスについて、あなたの意見を述べてください。",
+                    type: "essay",
+                    points: 15,
+                    rubric: [
+                        { criteria: "問題の理解", maxPoints: 5 },
+                        { criteria: "バランスの取れた視点", maxPoints: 5 },
+                        { criteria: "具体的な提案", maxPoints: 5 }
+                    ],
+                    questionContext: {
+                         keywords: ["文化遺産", "景観条例", "町家", "高さ制限", "観光産業", "住民の生活", "伝統と革新", "持続可能な開発", "経済発展", "保存地区"]
+                    }
+                },
+                {
+                    question: "京都の四季折々の魅力について、外国人観光客に説明してください。",
+                    type: "essay",
+                    points: 15,
+                    rubric: [
+                        { criteria: "各季節の特徴", maxPoints: 8 },
+                        { criteria: "季節ごとの観光スポットや行事", maxPoints: 7 }
+                    ],
+                    questionContext: {
+                        keywords: ["桜", "紅葉", "雪景色", "新緑", "祇園祭", "時代祭", "花見", "紅葉狩り", "川床", "五山送り火", "季節の食材"]
+                    }
+                }
+            ],
+            3: [
+                {
+                    question: "Compare and contrast the concepts of 'wabi-sabi' and 'mono no aware' in English.",
+                    type: "essay",
+                    points: 15,
+                    rubric: [
+                        { criteria: "両概念の正確な説明", maxPoints: 6 },
+                        { criteria: "比較分析の深さ", maxPoints: 6 },
+                        { criteria: "英語での表現力", maxPoints: 3 }
+                    ],
+                    questionContext: {
+                        keywords: ["imperfection", "transience", "aesthetic", "melancholy", "appreciation", "cherry blossoms", "tea ceremony", "Japanese philosophy", "beauty", "impermanence"]
+                    }
+                },
+                {
+                    question: "京都の「花街」として有名な地域はどこですか？",
+                    type: "multiple",
+                    options: ["祇園", "先斗町", "宮川町", "以上全て"],
+                    answer: 3,
+                    points: 10
+                },
+                {
+                    question: "外国人観光客が日本の政治システムについて質問してきました。日本の政治システムの特徴を簡潔に説明してください。",
+                    type: "essay",
+                    points: 15,
+                    rubric: [
+                        { criteria: "政治システムの正確な説明", maxPoints: 7 },
+                        { criteria: "簡潔さと明確さ", maxPoints: 4 },
+                        { criteria: "国際的な文脈での位置づけ", maxPoints: 4 }
+                    ],
+                    questionContext: {
+                        keywords: ["立憲君主制", "議院内閣制", "天皇", "首相", "国会", "衆議院", "参議院", "選挙制度", "政党", "地方自治"]
+                    }
+                },
+                {
+                    question: "A group of vegetarian tourists asks about dining options in Kyoto. How would you address their needs and introduce them to suitable Japanese cuisine?",
+                    type: "essay",
+                    points: 15,
+                    rubric: [
+                        { criteria: "適切な食事オプションの提案", maxPoints: 6 },
+                        { criteria: "日本料理の知識", maxPoints: 5 },
+                        { criteria: "顧客ニーズへの対応力", maxPoints: 4 }
+                    ],
+                    questionContext: {
+                        keywords: ["shojin ryori", "Buddhist cuisine", "tofu", "vegetable tempura", "yudofu", "vegetarian sushi", "kaiseki", "miso soup", "vegan ramen", "local vegetables"]
+                    }
+                },
+                {
+                    question: "京都の茶道文化について、その歴史と現代的意義を説明してください。",
+                    type: "essay",
+                    points: 15,
+                    rubric: [
+                        { criteria: "茶道の歴史", maxPoints: 5 },
+                        { criteria: "茶道の作法や精神", maxPoints: 5 },
+                        { criteria: "現代における意義", maxPoints: 5 }
+                    ],
+                    questionContext: {
+                        keywords: ["千利休", "わび茶", "茶室", "茶碗", "茶道具", "もてなしの心", "禅", "和敬清寂", "茶会", "茶道教室", "国際交流"]
+                    }
+                },
+                {
+                    question: "京都の伝統芸能（能、狂言、歌舞伎など）について、その特徴と鑑賞の魅力を外国人観光客に説明してください。",
+                    type: "essay",
+                    points: 15,
+                    rubric: [
+                        { criteria: "各芸能の特徴説明", maxPoints: 6 },
+                        { criteria: "鑑賞の魅力の伝達", maxPoints: 5 },
+                        { criteria: "外国人向けの分かりやすさ", maxPoints: 4 }
+                    ],
+                    questionContext: {
+                        keywords: ["能面", "舞台構造", "謡", "狂言師", "歌舞伎役者", "化粧", "衣装", "物語", "伝統", "様式美", "象徴性", "英語字幕"]
+                    }
+                }
+            ],
+            4: [
+                {
+                    question: "Discuss the historical significance of Kyoto in Japanese politics and culture, and its relevance in modern Japan.",
+                    type: "essay",
+                    points: 15,
+                    rubric: [
+                        { criteria: "歴史的重要性の説明", maxPoints: 5 },
+                        { criteria: "文化的影響の分析", maxPoints: 5 },
+                        { criteria: "現代との関連性", maxPoints: 5 }
+                    ],
+                    questionContext: {
+                        keywords: ["imperial capital", "Heian period", "shogunate", "cultural preservation", "world heritage sites", "traditional arts", "modern tourism", "educational center", "technology industry", "cultural diplomacy"]
+                    }
+                },
+                {
+                    question: "京都の伝統行事「祇園祭」の起源と現代における意義について説明してください。",
+                    type: "essay",
+                    points: 15,
+                    rubric: [
+                        { criteria: "起源の正確な説明", maxPoints: 5 },
+                        { criteria: "現代的意義の分析", maxPoints: 5 },
+                        { criteria: "説明の構成と明確さ", maxPoints: 5 }
+                    ],
+                    questionContext: {
+                        keywords: ["疫病退散", "山鉾巡行", "鉾建て", "寺社", "コミュニティ", "伝統工芸", "観光資源", "文化継承", "祭りの準備", "山鉾連合会"]
+                    }
+                },
+                {
+                    question: "A tourist group is interested in the concept of 'Zen' and its influence on Japanese culture. Provide a comprehensive explanation, including its historical context, philosophical aspects, and modern-day applications.",
+                    type: "essay",
+                    points: 15,
+                    rubric: [
+                        { criteria: "禅の歴史的文脈", maxPoints: 5 },
+                        { criteria: "哲学的側面の説明", maxPoints: 5 },
+                        { criteria: "現代的応用の例示", maxPoints: 5 }
+                    ],
+                    questionContext: {
+                        keywords: ["meditation", "Buddha nature", "koan", "mindfulness", "tea ceremony", "rock gardens", "minimalism", "martial arts", "calligraphy", "corporate culture", "stress reduction"]
+                    }
+                },
+                {
+                    question: "外国人観光客から、日本の少子高齢化問題について質問がありました。この問題の背景、影響、そして政府の対策について説明してください。",
+                    type: "essay",
+                    points: 15,
+                    rubric: [
+                        { criteria: "問題の背景説明", maxPoints: 5 },
+                        { criteria: "社会的影響の分析", maxPoints: 5 },
+                        { criteria: "政府の対策の説明", maxPoints: 5 }
+                    ],
+                    questionContext: {
+                        keywords: ["出生率低下", "平均寿命", "労働力不足", "年金制度", "医療費増大", "介護問題", "移民政策", "働き方改革", "子育て支援", "地方創生"]
+                    }
+                },
+                {
+                    question: "京都の伝統的な町家（まちや）建築について、その特徴と保存の重要性を説明してください。",
+                    type: "essay",
+                    points: 15,
+                    rubric: [
+                        { criteria: "町家の建築的特徴", maxPoints: 5 },
+                        { criteria: "歴史的・文化的重要性", maxPoints: 5 },
+                        { criteria: "保存の意義と課題", maxPoints: 5 }
+                    ],
+                    questionContext: {
+                        keywords: ["格子戸", "坪庭", "通り庭", "木造", "町並み", "職住一体", "伝統工法", "リノベーション", "観光資源", "生活様式", "景観保全"]
+                    }
+                },
+                {
+                    question: "京都の国際化と伝統文化の保護のバランスについて、あなたの見解を述べてください。",
+                    type: "essay",
+                    points: 15,
+                    rubric: [
+                        { criteria: "問題の多面的理解", maxPoints: 5 },
+                        { criteria: "具体的な事例の提示", maxPoints: 5 },
+                        { criteria: "バランスの取れた解決策の提案", maxPoints: 5 }
+                    ],
+                    questionContext: {
+                        keywords: ["観光客増加", "オーバーツーリズム", "文化財保護", "多言語対応", "伝統産業", "留学生", "国際会議", "文化体験", "持続可能な観光", "地域コミュニティ"]
+                    }
+                }
+            ]
+        };
+
+        let currentLevel = 0;
+        let currentScore = 0;
+
+        function showTest(level) {
+            currentLevel = level;
+            document.getElementById('level-selection').classList.add('hidden');
+            document.getElementById('test-container').classList.remove('hidden');
+            document.getElementById('test-level').textContent = `レベル${level}テスト`;
+
+            const form = document.getElementById('test-form');
+            form.innerHTML = '';
+
+            tests[level].forEach((q, index) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.classList.add('mb-6');
+                questionDiv.innerHTML = `<p class="font-semibold mb-2">${index + 1}. ${q.question}</p>`;
+
+                if (q.type === 'multiple') {
+                    q.options.forEach((option, i) => {
+                        questionDiv.innerHTML += `
+                            <label class="block mb-2">
+                                <input type="radio" name="q${index}" value="${i}">
+                                ${option}
+                            </label>
+                        `;
+                    });
+                } else if (q.type === 'text' || q.type === 'essay') {
+                    questionDiv.innerHTML += `<textarea name="q${index}" rows="${q.type === 'essay' ? 5 : 1}" class="w-full p-2 border rounded"></textarea>`;
+                }
+
+                form.appendChild(questionDiv);
+            });
+        }
+
+        function submitTest() {
+            currentScore = 0;
+            const form = document.getElementById('test-form');
+            const formData = new FormData(form);
+
+            tests[currentLevel].forEach((q, index) => {
+                const answer = formData.get(`q${index}`);
+                if (q.type === 'multiple') {
+                    if (parseInt(answer) === q.answer) {
+                        currentScore += q.points;
+                    }
+                } else if (q.type === 'text') {
+                    if (answer.toLowerCase().trim() === q.answer.toLowerCase()) {
+                        currentScore += q.points;
+                    }
+                } else if (q.type === 'essay') {
+                    currentScore += evaluateEssay(answer, q.rubric, q.questionContext, q.points);
+                }
+            });
+
+            showResult();
+        }
+
+        function evaluateEssay(answer, rubric, questionContext, maxPoints) {
+            let score = 0;
+            const answerLower = answer.toLowerCase();
+
+            // キーワードマッチング (30%)
+            const keywords = questionContext.keywords;
+            const keywordMatches = keywords.filter(kw => answerLower.includes(kw.toLowerCase())).length;
+            score += (keywordMatches / keywords.length) * 0.3;
+
+            // 文章構造分析 (10%)
+            const hasIntro = /^(in|this essay|firstly|to begin)/i.test(answer);
+            const hasConclusion = /(in conclusion|to summarize|finally|in summary)/i.test(answer);
+            if (hasIntro && hasConclusion) score += 0.1;
+
+            // 言語の複雑さ (10%)
+            const uniqueWords = new Set(answerLower.match(/\w+/g)).size;
+            const complexityScore = Math.min(uniqueWords / 50, 1); // 50単語で最高スコア
+            score += complexityScore * 0.1;
+
+            // 創造性と独自の視点 (10%)
+            const creativePhrasesCount = (answer.match(/in my opinion|i believe|for example|interestingly/gi) || []).length;
+            score += Math.min(creativePhrasesCount / 3, 1) * 0.1;
+
+            // ルーブリックに基づく評価 (40%)
+            const totalRubricPoints = rubric.reduce((sum, criterion) => sum + criterion.maxPoints, 0);
+            rubric.forEach(criterion => {
+                if (answerLower.includes(criterion.criteria.toLowerCase())) {
+                    score += (criterion.maxPoints / totalRubricPoints) * 0.4;
+                }
+            });
+
+            return Math.round(score * maxPoints);
+        }
+
+        function showResult() {
+            document.getElementById('test-container').classList.add('hidden');
+            document.getElementById('result').classList.remove('hidden');
+            document.getElementById('score').textContent = `スコア: ${currentScore}/100`;
+            const passFail = currentScore >= 70 ? '合格' : '不合格';
+            document.getElementById('pass-fail').textContent = `結果: ${passFail}`;
+        }
+    </script>
+</body>
+</html>
